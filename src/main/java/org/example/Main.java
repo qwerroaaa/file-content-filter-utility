@@ -11,9 +11,9 @@ public class Main {
     public static void main(String[] args) {
         InputArgs cfg = InputArgs.parse(args);
 
-        Path outInts   = Paths.get("output/integers.txt");
-        Path outFloats = Paths.get("output/floats.txt");
-        Path outStrs   = Paths.get("output/strings.txt");
+        Path outInts   = cfg.outputDir.resolve("integers.txt");
+        Path outFloats = cfg.outputDir.resolve("floats.txt");
+        Path outStrs   = cfg.outputDir.resolve("strings.txt");
 
         try (OutputResult sinks = new OutputResult(outInts, outFloats, outStrs, cfg.append)) {
             FileProcessor proc = new FileProcessor(new DefineClassify(), sinks);
