@@ -7,13 +7,13 @@ import java.util.List;
 
 public class InputArgs {
     public final List<Path> inputs = new ArrayList<>();
+    public boolean append = false;
 
     public static InputArgs parse(String[] args) {
         InputArgs cfg = new InputArgs();
         for (String a : args) {
-            if (!a.startsWith("-")) {
-                cfg.inputs.add(Paths.get(a));
-            }
+            if ("-a".equals(a) || "--append".equals(a)) { cfg.append = true; continue; }
+            if (!a.startsWith("-")) cfg.inputs.add(Paths.get(a));
         }
         return cfg;
     }

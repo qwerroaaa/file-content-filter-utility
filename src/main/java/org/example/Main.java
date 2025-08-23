@@ -15,10 +15,10 @@ public class Main {
         Path outFloats = Paths.get("output/floats.txt");
         Path outStrs   = Paths.get("output/strings.txt");
 
-        try (OutputResult sinks = new OutputResult(outInts, outFloats, outStrs)) {
+        try (OutputResult sinks = new OutputResult(outInts, outFloats, outStrs, cfg.append)) {
             FileProcessor proc = new FileProcessor(new DefineClassify(), sinks);
             for (Path in : cfg.inputs) {
-                proc.process(in); // читаем в порядке как в командной строке
+                proc.process(in);
             }
         } catch (Exception e) {
             e.printStackTrace();
