@@ -11,6 +11,9 @@ public class InputArgs {
     public final List<Path> inputs = new ArrayList<>();
     public boolean append = false;
     public Path outputDir = Paths.get(".");
+    public String prefix = "";
+    public boolean printShortStat = false;
+    public boolean printFullStat = false;
 
     public static InputArgs parse(String[] args) {
         Options options = new Options();
@@ -26,7 +29,30 @@ public class InputArgs {
         options.addOption(
                 Option.builder("a")
                         .longOpt("append")
-                        .desc("Режим добавления в существующие файлы (append)")
+                        .desc("Режим добавления в существующие файлы")
+                        .build()
+        );
+
+        options.addOption(
+                Option.builder("p")
+                        .longOpt("prefix")
+                        .hasArg()
+                        .argName("prefix")
+                        .desc("Добавление префикса к выходным файлам")
+                        .build()
+        );
+
+        options.addOption(
+                Option.builder("s")
+                        .longOpt("shortStat")
+                        .desc("Вывод краткой статистики")
+                        .build()
+        );
+
+        options.addOption(
+                Option.builder("f")
+                        .longOpt("fullStat")
+                        .desc("Вывод полной статистики")
                         .build()
         );
 
@@ -38,12 +64,12 @@ public class InputArgs {
 
             InputArgs cfg = new InputArgs();
 
-            // -o
             String outPath = cmd.getOptionValue("o", ".");
             cfg.outputDir = Paths.get(outPath);
-
-            // -a
             cfg.append = cmd.hasOption("a");
+            cfg.prefix = cmd.getOptionValue("p", "");
+            cfg.printShortStat = cmd.hasOption("s");
+            cfg.printFullStat = cmd.hasOption("f");
 
             for (String file : cmd.getArgs()) {
                 cfg.inputs.add(Paths.get(file));
@@ -52,7 +78,7 @@ public class InputArgs {
             return cfg;
         } catch (ParseException e) {
             System.err.println("Ошибка парсинга аргументов: " + e.getMessage());
-            help.printHelp("java -jar app.jar [options] <files...>", options);
+            help.printHelp("java -jar file-content-filter-utility.jar [options] <files...>", options);
             System.exit(2);
             return null;
         }
