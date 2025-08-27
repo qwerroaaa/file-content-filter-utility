@@ -2,6 +2,9 @@ package org.example.io;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.MathContext;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
@@ -21,11 +24,13 @@ public class OutputResult implements AutoCloseable {
     private long floatsCount = 0;
     private long stringsCount = 0;
 
-    private Long minInt = null, maxInt = null, sumInt = 0L;
-    private Double minFloat = null, maxFloat = null, sumFloat = 0.0;
+    private BigInteger minInt = null, maxInt = null, sumInt = BigInteger.ZERO;
+    private BigDecimal minFloat = null, maxFloat = null, sumFloat = BigDecimal.ZERO;
     private String shortestStr = null, longestStr = null;
 
     private final boolean append;
+
+    private static final MathContext MC = MathContext.DECIMAL128;
 
     public OutputResult(Path integers, Path floats, Path strings, boolean append) {
         this.intFile = integers;
@@ -35,7 +40,6 @@ public class OutputResult implements AutoCloseable {
     }
 
     private BufferedWriter openWriter(Path file) throws IOException {
-        // гарантируем наличие родительских папок
         Path parent = file.getParent();
         if (parent != null) {
             Files.createDirectories(parent);
@@ -50,24 +54,24 @@ public class OutputResult implements AutoCloseable {
 
     public void writeInt(String s) throws IOException {
         if (intWriteInFile == null) intWriteInFile = openWriter(intFile);
-        long value = Long.parseLong(s);
+        BigInteger value = new BigInteger(s);
         intWriteInFile.write(s);
         intWriteInFile.newLine();
         intsCount++;
-        sumInt += value;
-        if (minInt == null || value < minInt) minInt = value;
-        if (maxInt == null || value > maxInt) maxInt = value;
+        sumInt = sumInt.add(value);
+        if (minInt == null || value.compareTo(minInt) < 0) minInt = value;
+        if (maxInt == null || value.compareTo(maxInt) > 0) maxInt = value;
     }
 
     public void writeFloat(String s) throws IOException {
         if (floatWriteInFile == null) floatWriteInFile = openWriter(floatFile);
-        double value = Double.parseDouble(s);
+        BigDecimal value = new BigDecimal(s);
         floatWriteInFile.write(s);
         floatWriteInFile.newLine();
         floatsCount++;
-        sumFloat += value;
-        if (minFloat == null || value < minFloat) minFloat = value;
-        if (maxFloat == null || value > maxFloat) maxFloat = value;
+        sumFloat = sumFloat.add(value);
+        if (minFloat == null || value.compareTo(minFloat) < 0) minFloat = value;
+        if (maxFloat == null || value.compareTo(maxFloat) > 0) maxFloat = value;
     }
 
     public void writeString(String s) throws IOException {
@@ -88,16 +92,16 @@ public class OutputResult implements AutoCloseable {
     public long getStringsCount() {return stringsCount;}
     public long getTotalCount() {return intsCount + floatsCount + stringsCount;}
 
-    public Long getMinInt() { return minInt; }
-    public Long getMaxInt() { return maxInt; }
-    public Double getMinFloat() { return minFloat; }
-    public Double getMaxFloat() { return maxFloat; }
-    public double getAvgInt() { return intsCount == 0 ? 0 : (double) sumInt / intsCount; }
-    public double getAvgFloat() { return floatsCount == 0 ? 0 : sumFloat / floatsCount; }
+    public BigInteger getMinInt() { return minInt; }
+    public BigInteger getMaxInt() { return maxInt; }
+    public BigDecimal getMinFloat() { return minFloat; }
+    public BigDecimal getMaxFloat() { return maxFloat; }
+    public BigDecimal getAvgInt() { return intsCount == 0 ? BigDecimal.ZERO : new BigDecimal(sumInt).divide(BigDecimal.valueOf(intsCount), MC); }
+    public BigDecimal getAvgFloat() { return floatsCount == 0 ? BigDecimal.ZERO : sumFloat.divide(BigDecimal.valueOf(floatsCount), MC); }
     public String getShortestStr() { return shortestStr; }
     public String getLongestStr() { return longestStr; }
-    public Long getSumInt() { return sumInt; }
-    public double getSumFloat() { return sumFloat; }
+    public BigInteger getSumInt() { return sumInt; }
+    public BigDecimal getSumFloat() { return sumFloat; }
 
     @Override
     public void close() throws IOException {
