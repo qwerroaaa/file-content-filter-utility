@@ -26,11 +26,11 @@ public class FileProcessor {
     }
 
     private void handle(String raw) throws IOException {
-        String s = raw == null ? "" : raw.trim();
+        String line = raw == null ? "" : raw.trim();
         switch (classifier.classify(raw)) {
-            case INTEGER: out.writeInt(s);    break;
-            case FLOAT:   out.writeFloat(s);  break;
-            case STRING:  out.writeString(s); break;
+            case INTEGER: out.writeInt(line);    break;
+            case FLOAT:   out.writeFloat(line);  break;
+            case STRING:  out.writeString(line); break;
         }
     }
 }
