@@ -1,5 +1,7 @@
 package org.example.parser;
 
+import org.apache.commons.cli.*;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -7,14 +9,78 @@ import java.util.List;
 
 public class InputArgs {
     public final List<Path> inputs = new ArrayList<>();
+    public boolean append = false;
+    public Path outputDir = Paths.get(".");
+    public String prefix = "";
+    public boolean printShortStat = false;
+    public boolean printFullStat = false;
 
     public static InputArgs parse(String[] args) {
-        InputArgs cfg = new InputArgs();
-        for (String a : args) {
-            if (!a.startsWith("-")) {
-                cfg.inputs.add(Paths.get(a));
+        Options options = new Options();
+        options.addOption(
+            Option.builder("o")
+                    .longOpt("out")
+                    .hasArg()
+                    .argName("dir")
+                    .desc("Путь для сохранения результатов")
+                    .build()
+        );
+
+        options.addOption(
+                Option.builder("a")
+                        .longOpt("append")
+                        .desc("Режим добавления в существующие файлы")
+                        .build()
+        );
+
+        options.addOption(
+                Option.builder("p")
+                        .longOpt("prefix")
+                        .hasArg()
+                        .argName("prefix")
+                        .desc("Добавление префикса к выходным файлам")
+                        .build()
+        );
+
+        options.addOption(
+                Option.builder("s")
+                        .longOpt("shortStat")
+                        .desc("Вывод краткой статистики")
+                        .build()
+        );
+
+        options.addOption(
+                Option.builder("f")
+                        .longOpt("fullStat")
+                        .desc("Вывод полной статистики")
+                        .build()
+        );
+
+        CommandLineParser parser = new DefaultParser();
+        HelpFormatter help = new HelpFormatter();
+
+        try {
+            CommandLine cmd = parser.parse(options, args);
+
+            InputArgs cfg = new InputArgs();
+
+            String outPath = cmd.getOptionValue("o", ".");
+            cfg.outputDir = Paths.get(outPath);
+            cfg.append = cmd.hasOption("a");
+            cfg.prefix = cmd.getOptionValue("p", "");
+            cfg.printShortStat = cmd.hasOption("s");
+            cfg.printFullStat = cmd.hasOption("f");
+
+            for (String file : cmd.getArgs()) {
+                cfg.inputs.add(Paths.get(file));
             }
+
+            return cfg;
+        } catch (ParseException e) {
+            System.err.println("Ошибка парсинга аргументов: " + e.getMessage());
+            help.printHelp("java -jar file-content-filter-utility.jar [options] <files...>", options);
+            System.exit(2);
+            return null;
         }
-        return cfg;
     }
 }
