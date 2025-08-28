@@ -79,7 +79,6 @@ public class InputArgs {
         } catch (ParseException e) {
             System.err.println("Ошибка парсинга аргументов: " + e.getMessage());
             help.printHelp("java -jar file-content-filter-utility.jar [options] <files...>", options);
-            System.exit(2);
             return null;
         }
     }

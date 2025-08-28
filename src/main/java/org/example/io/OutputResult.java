@@ -9,8 +9,10 @@ import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.logging.*;
 
 public class OutputResult implements AutoCloseable {
+    private static final Logger log = Logger.getLogger(OutputResult.class.getName());
     private final Path intFile;
     private final Path floatFile;
     private final Path stringFile;
@@ -66,10 +68,13 @@ public class OutputResult implements AutoCloseable {
 
     @Override
     public void close() throws IOException {
-        IOException err = null;
-        try { if (intWriteInFile != null) intWriteInFile.close(); } catch (IOException e) { err = e; }
-        try { if (floatWriteInFile != null) floatWriteInFile.close(); } catch (IOException e) { if (err == null) err = e; }
-        try { if (stringWriteInFile != null) stringWriteInFile.close(); } catch (IOException e) { if (err == null) err = e; }
-        if (err != null) {throw err;}
+        try { if (intWriteInFile   != null) intWriteInFile.close(); }
+        catch (IOException e) { log.warning("Ошибка при закрытии integers.txt: " + e.getMessage()); }
+
+        try { if (floatWriteInFile != null) floatWriteInFile.close(); }
+        catch (IOException e) { log.warning("Ошибка при закрытии floats.txt: " + e.getMessage()); }
+
+        try { if (stringWriteInFile!= null) stringWriteInFile.close(); }
+        catch (IOException e) { log.warning("Ошибка при закрытии strings.txt: " + e.getMessage()); }
     }
 }

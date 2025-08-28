@@ -6,8 +6,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.logging.*;
 
 public class FileProcessor {
+    private static final Logger log = Logger.getLogger(FileProcessor.class.getName());
     private final LineClassify classifier;
     private final OutputResult out;
 
@@ -17,10 +19,18 @@ public class FileProcessor {
     }
 
     public void process(Path file) throws IOException {
+        long lineNo = 0;
         try (BufferedReader r = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
             String raw;
             while ((raw = r.readLine()) != null) {
-                handle(raw);
+                lineNo++;
+                try {
+                    handle(raw);
+                } catch (Exception error) {
+                    log.log(Level.WARNING,
+                            "Строка пропущена (файл: " + file.getFileName() + ", line " + lineNo + "): "
+                                    + " — причина: " + error.getMessage(), error);
+                }
             }
         }
     }

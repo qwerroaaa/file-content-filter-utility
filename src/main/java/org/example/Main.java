@@ -6,9 +6,18 @@ import org.example.io.FileProcessor;
 import org.example.io.OutputResult;
 import org.example.stat.Stats;
 import java.nio.file.Path;
+import java.util.logging.*;
 
 public class Main {
+    private static final Logger log = Logger.getLogger(Main.class.getName());
+
     public static void main(String[] args) {
+        LogManager.getLogManager().reset();
+        ConsoleHandler ch = new ConsoleHandler();
+        ch.setLevel(Level.INFO);
+        log.addHandler(ch);
+        log.setLevel(Level.INFO);
+
         InputArgs inputArgs = InputArgs.parse(args);
 
         Path integersOutputFile = inputArgs.outputDir.resolve(inputArgs.prefix + "integers.txt");
@@ -19,8 +28,20 @@ public class Main {
 
         try (OutputResult outputResult = new OutputResult(integersOutputFile, floatsOutputFile, stringsOutputFile, inputArgs.append, statistics)) {
             FileProcessor fileProcessor = new FileProcessor(new DefineClassify(), outputResult);
+            int okFiles = 0, skippedFiles = 0;
             for (Path inputFile : inputArgs.inputs) {
-                fileProcessor.process(inputFile);
+                try {
+                    fileProcessor.process(inputFile);
+                    okFiles++;
+                } catch (Exception fileEx) {
+                    skippedFiles++;
+                    log.log(Level.WARNING, "Файл пропущен: " + inputFile + " — " + fileEx.getMessage(), fileEx);
+                }
+            }
+
+            if (okFiles == 0) {
+                System.err.println("Не удалось обработать ни одного входного файла (пропущено " + skippedFiles + ").");
+                System.exit(2);
             }
 
             if (inputArgs.printShortStat) {
@@ -51,9 +72,10 @@ public class Main {
                 System.out.println("short string = " + statistics.getShortestStr());
                 System.out.println("long string = " + statistics.getLongestStr());
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(1);
+        } catch (Exception error) {
+            log.log(Level.SEVERE, "Невозможно продолжить работу: " + error.getMessage(), error);
+            System.err.println("Ошибка: " + error.getMessage());
+            System.exit(2);
         }
     }
 }

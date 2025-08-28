@@ -1,6 +1,11 @@
 package org.example.classify;
 
+import org.example.Main;
+
+import java.util.logging.Logger;
+
 public class DefineClassify implements LineClassify {
+    private static final Logger log = Logger.getLogger(Main.class.getName());
     @Override
     public Types classify(String raw) {
         String line = raw == null ? "" : raw.trim();
@@ -35,6 +40,7 @@ public class DefineClassify implements LineClassify {
             double value = Double.parseDouble(line);
             return Double.isFinite(value);
         } catch (NumberFormatException ex) {
+            log.fine("Не удалось распарсить как float: \"" + line + "\" (" + ex.getMessage() + ")");
             return false;
         }
     }
