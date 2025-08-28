@@ -1,40 +1,46 @@
 package org.example.classify;
 
+import org.example.Main;
+
+import java.util.logging.Logger;
+
 public class DefineClassify implements LineClassify {
+    private static final Logger log = Logger.getLogger(Main.class.getName());
     @Override
     public Types classify(String raw) {
-        String s = raw == null ? "" : raw.trim();
+        String line = raw == null ? "" : raw.trim();
 
-        if (s.isEmpty()) return Types.STRING;
-        if (isInteger(s)) return Types.INTEGER;
-        if (isFloat(s)) return Types.FLOAT;
+        if (line.isEmpty()) return Types.STRING;
+        if (isInteger(line)) return Types.INTEGER;
+        if (isFloat(line)) return Types.FLOAT;
 
         return Types.STRING;
     }
 
-    private boolean isInteger (String s) {
-        int n = s.length();
-        int i = 0;
-        char s0 = s.charAt(0);
-        if (s0 == '+' || s0 == '-') {
-            if (n == 1) return false;
-            i = 1;
+    private boolean isInteger (String line) {
+        int length = line.length();
+        int index = 0;
+        char firstChar = line.charAt(0);
+        if (firstChar == '+' || firstChar == '-') {
+            if (length == 1) return false;
+            index = 1;
         }
-        for (; i < n; i++) {
-            char c = s.charAt(i);
-            if (c < '0' || c > '9') return false;
+        for (; index < length; index++) {
+            char chosenChar = line.charAt(index);
+            if (chosenChar < '0' || chosenChar > '9') return false;
         }
 
         return true;
     }
 
-    private boolean isFloat (String s) {
-        if (!(s.indexOf('.') >= 0 || s.indexOf(('e')) >= 0 || s.indexOf('E') >= 0)) return false;
+    private boolean isFloat (String line) {
+        if (!(line.indexOf('.') >= 0 || line.indexOf(('e')) >= 0 || line.indexOf('E') >= 0)) return false;
 
         try {
-            double v = Double.parseDouble(s);
-            return Double.isFinite(v);
+            double value = Double.parseDouble(line);
+            return Double.isFinite(value);
         } catch (NumberFormatException ex) {
+            log.fine("Не удалось распарсить как float: \"" + line + "\" (" + ex.getMessage() + ")");
             return false;
         }
     }

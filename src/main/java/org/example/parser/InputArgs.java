@@ -62,24 +62,23 @@ public class InputArgs {
         try {
             CommandLine cmd = parser.parse(options, args);
 
-            InputArgs cfg = new InputArgs();
+            InputArgs inputArgs = new InputArgs();
 
             String outPath = cmd.getOptionValue("o", ".");
-            cfg.outputDir = Paths.get(outPath);
-            cfg.append = cmd.hasOption("a");
-            cfg.prefix = cmd.getOptionValue("p", "");
-            cfg.printShortStat = cmd.hasOption("s");
-            cfg.printFullStat = cmd.hasOption("f");
+            inputArgs.outputDir = Paths.get(outPath);
+            inputArgs.append = cmd.hasOption("a");
+            inputArgs.prefix = cmd.getOptionValue("p", "");
+            inputArgs.printShortStat = cmd.hasOption("s");
+            inputArgs.printFullStat = cmd.hasOption("f");
 
             for (String file : cmd.getArgs()) {
-                cfg.inputs.add(Paths.get(file));
+                inputArgs.inputs.add(Paths.get(file));
             }
 
-            return cfg;
+            return inputArgs;
         } catch (ParseException e) {
             System.err.println("Ошибка парсинга аргументов: " + e.getMessage());
             help.printHelp("java -jar file-content-filter-utility.jar [options] <files...>", options);
-            System.exit(2);
             return null;
         }
     }

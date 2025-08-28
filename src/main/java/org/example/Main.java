@@ -4,53 +4,78 @@ import org.example.parser.InputArgs;
 import org.example.classify.DefineClassify;
 import org.example.io.FileProcessor;
 import org.example.io.OutputResult;
+import org.example.stat.Stats;
 import java.nio.file.Path;
+import java.util.logging.*;
 
 public class Main {
+    private static final Logger log = Logger.getLogger(Main.class.getName());
+
     public static void main(String[] args) {
-        InputArgs cfg = InputArgs.parse(args);
+        LogManager.getLogManager().reset();
+        ConsoleHandler ch = new ConsoleHandler();
+        ch.setLevel(Level.INFO);
+        log.addHandler(ch);
+        log.setLevel(Level.INFO);
 
-        Path outInts   = cfg.outputDir.resolve(cfg.prefix + "integers.txt");
-        Path outFloats = cfg.outputDir.resolve(cfg.prefix + "floats.txt");
-        Path outStrs   = cfg.outputDir.resolve(cfg.prefix + "strings.txt");
+        InputArgs inputArgs = InputArgs.parse(args);
 
-        try (OutputResult sinks = new OutputResult(outInts, outFloats, outStrs, cfg.append)) {
-            FileProcessor proc = new FileProcessor(new DefineClassify(), sinks);
-            for (Path in : cfg.inputs) {
-                proc.process(in);
+        Path integersOutputFile = inputArgs.outputDir.resolve(inputArgs.prefix + "integers.txt");
+        Path floatsOutputFile = inputArgs.outputDir.resolve(inputArgs.prefix + "floats.txt");
+        Path stringsOutputFile   = inputArgs.outputDir.resolve(inputArgs.prefix + "strings.txt");
+
+        Stats statistics = new Stats();
+
+        try (OutputResult outputResult = new OutputResult(integersOutputFile, floatsOutputFile, stringsOutputFile, inputArgs.append, statistics)) {
+            FileProcessor fileProcessor = new FileProcessor(new DefineClassify(), outputResult);
+            int okFiles = 0, skippedFiles = 0;
+            for (Path inputFile : inputArgs.inputs) {
+                try {
+                    fileProcessor.process(inputFile);
+                    okFiles++;
+                } catch (Exception fileEx) {
+                    skippedFiles++;
+                    log.log(Level.WARNING, "Файл пропущен: " + inputFile + " — " + fileEx.getMessage(), fileEx);
+                }
             }
 
-            if (cfg.printShortStat) {
+            if (okFiles == 0) {
+                System.err.println("Не удалось обработать ни одного входного файла (пропущено " + skippedFiles + ").");
+                System.exit(2);
+            }
+
+            if (inputArgs.printShortStat) {
                 System.out.println("Краткая статистика:");
-                System.out.println("Кол-во int значений: " + sinks.getIntsCount());
-                System.out.println("Кол-во float значений: " + sinks.getFloatsCount());
-                System.out.println("Кол-во string значений: " + sinks.getStringsCount());
-                System.out.println("Общее количество значений: " + sinks.getTotalCount());
+                System.out.println("Кол-во int значений: " + statistics.getIntsCount());
+                System.out.println("Кол-во float значений: " + statistics.getFloatsCount());
+                System.out.println("Кол-во string значений: " + statistics.getStringsCount());
+                System.out.println("Общее количество значений: " + statistics.getTotalCount());
             }
 
-            if (cfg.printFullStat) {
+            if (inputArgs.printFullStat) {
                 System.out.println("Полная статистика:");
-                System.out.println("Кол-во int значений: " + sinks.getIntsCount());
-                System.out.println("Кол-во float значений: " + sinks.getFloatsCount());
-                System.out.println("Кол-во string значений: " + sinks.getStringsCount());
-                System.out.println("Общее количество значений: " + sinks.getTotalCount());
+                System.out.println("Кол-во int значений: " + statistics.getIntsCount());
+                System.out.println("Кол-во float значений: " + statistics.getFloatsCount());
+                System.out.println("Кол-во string значений: " + statistics.getStringsCount());
+                System.out.println("Общее количество значений: " + statistics.getTotalCount());
                 System.out.println("Integers:");
-                System.out.println("min = " + sinks.getMinInt());
-                System.out.println("max = " + sinks.getMaxInt());
-                System.out.println("sum = " + sinks.getSumInt());
-                System.out.println("avg = " + sinks.getAvgInt());
+                System.out.println("min = " + statistics.getMinInt());
+                System.out.println("max = " + statistics.getMaxInt());
+                System.out.println("sum = " + statistics.getSumInt());
+                System.out.println("avg = " + statistics.getAvgInt());
                 System.out.println("Floats:");
-                System.out.println("min = " + sinks.getMinFloat());
-                System.out.println("max = " + sinks.getMaxFloat());
-                System.out.println("sum = " + sinks.getSumFloat());
-                System.out.println("avg = " + sinks.getAvgFloat());
+                System.out.println("min = " + statistics.getMinFloat());
+                System.out.println("max = " + statistics.getMaxFloat());
+                System.out.println("sum = " + statistics.getSumFloat());
+                System.out.println("avg = " + statistics.getAvgFloat());
                 System.out.println("Strings:");
-                System.out.println("short string = " + sinks.getShortestStr());
-                System.out.println("long string = " + sinks.getLongestStr());
+                System.out.println("short string = " + statistics.getShortestStr());
+                System.out.println("long string = " + statistics.getLongestStr());
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(1);
+        } catch (Exception error) {
+            log.log(Level.SEVERE, "Невозможно продолжить работу: " + error.getMessage(), error);
+            System.err.println("Ошибка: " + error.getMessage());
+            System.exit(2);
         }
     }
 }

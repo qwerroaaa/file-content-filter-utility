@@ -1,17 +1,18 @@
 package org.example.io;
 
+import org.example.stat.Stats;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.MathContext;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.logging.*;
 
 public class OutputResult implements AutoCloseable {
+    private static final Logger log = Logger.getLogger(OutputResult.class.getName());
     private final Path intFile;
     private final Path floatFile;
     private final Path stringFile;
@@ -20,23 +21,15 @@ public class OutputResult implements AutoCloseable {
     private BufferedWriter floatWriteInFile;
     private BufferedWriter stringWriteInFile;
 
-    private long intsCount = 0;
-    private long floatsCount = 0;
-    private long stringsCount = 0;
-
-    private BigInteger minInt = null, maxInt = null, sumInt = BigInteger.ZERO;
-    private BigDecimal minFloat = null, maxFloat = null, sumFloat = BigDecimal.ZERO;
-    private String shortestStr = null, longestStr = null;
-
     private final boolean append;
+    private final Stats stats;
 
-    private static final MathContext MC = MathContext.DECIMAL128;
-
-    public OutputResult(Path integers, Path floats, Path strings, boolean append) {
+    public OutputResult(Path integers, Path floats, Path strings, boolean append, Stats stats) {
         this.intFile = integers;
         this.floatFile = floats;
         this.stringFile = strings;
         this.append = append;
+        this.stats = stats;
     }
 
     private BufferedWriter openWriter(Path file) throws IOException {
@@ -54,61 +47,34 @@ public class OutputResult implements AutoCloseable {
 
     public void writeInt(String s) throws IOException {
         if (intWriteInFile == null) intWriteInFile = openWriter(intFile);
-        BigInteger value = new BigInteger(s);
         intWriteInFile.write(s);
         intWriteInFile.newLine();
-        intsCount++;
-        sumInt = sumInt.add(value);
-        if (minInt == null || value.compareTo(minInt) < 0) minInt = value;
-        if (maxInt == null || value.compareTo(maxInt) > 0) maxInt = value;
+        stats.acceptInt(s);
     }
 
     public void writeFloat(String s) throws IOException {
         if (floatWriteInFile == null) floatWriteInFile = openWriter(floatFile);
-        BigDecimal value = new BigDecimal(s);
         floatWriteInFile.write(s);
         floatWriteInFile.newLine();
-        floatsCount++;
-        sumFloat = sumFloat.add(value);
-        if (minFloat == null || value.compareTo(minFloat) < 0) minFloat = value;
-        if (maxFloat == null || value.compareTo(maxFloat) > 0) maxFloat = value;
+        stats.acceptFloat(s);
     }
 
     public void writeString(String s) throws IOException {
         if (stringWriteInFile == null) stringWriteInFile = openWriter(stringFile);
         stringWriteInFile.write(s);
         stringWriteInFile.newLine();
-        stringsCount++;
-        if (shortestStr == null || s.length() < shortestStr.length()) {
-            shortestStr = s;
-        }
-        if (longestStr == null || s.length() > longestStr.length()) {
-            longestStr = s;
-        }
+        stats.acceptString(s);
     }
-
-    public long getIntsCount() {return intsCount;}
-    public long getFloatsCount() {return floatsCount;}
-    public long getStringsCount() {return stringsCount;}
-    public long getTotalCount() {return intsCount + floatsCount + stringsCount;}
-
-    public BigInteger getMinInt() { return minInt; }
-    public BigInteger getMaxInt() { return maxInt; }
-    public BigDecimal getMinFloat() { return minFloat; }
-    public BigDecimal getMaxFloat() { return maxFloat; }
-    public BigDecimal getAvgInt() { return intsCount == 0 ? BigDecimal.ZERO : new BigDecimal(sumInt).divide(BigDecimal.valueOf(intsCount), MC); }
-    public BigDecimal getAvgFloat() { return floatsCount == 0 ? BigDecimal.ZERO : sumFloat.divide(BigDecimal.valueOf(floatsCount), MC); }
-    public String getShortestStr() { return shortestStr; }
-    public String getLongestStr() { return longestStr; }
-    public BigInteger getSumInt() { return sumInt; }
-    public BigDecimal getSumFloat() { return sumFloat; }
 
     @Override
     public void close() throws IOException {
-        IOException err = null;
-        try { if (intWriteInFile != null) intWriteInFile.close(); } catch (IOException e) { err = e; }
-        try { if (floatWriteInFile != null) floatWriteInFile.close(); } catch (IOException e) { if (err == null) err = e; }
-        try { if (stringWriteInFile != null) stringWriteInFile.close(); } catch (IOException e) { if (err == null) err = e; }
-        if (err != null) {throw err;}
+        try { if (intWriteInFile   != null) intWriteInFile.close(); }
+        catch (IOException e) { log.warning("Ошибка при закрытии integers.txt: " + e.getMessage()); }
+
+        try { if (floatWriteInFile != null) floatWriteInFile.close(); }
+        catch (IOException e) { log.warning("Ошибка при закрытии floats.txt: " + e.getMessage()); }
+
+        try { if (stringWriteInFile!= null) stringWriteInFile.close(); }
+        catch (IOException e) { log.warning("Ошибка при закрытии strings.txt: " + e.getMessage()); }
     }
 }
