@@ -82,9 +82,4 @@ public class ArgumentParser {
 
         return config;
     }
-
-    public void printHelp() {
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("java -jar file-filter-utility.jar [опции] <файлы>", options);
-    }
 }

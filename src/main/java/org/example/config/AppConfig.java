@@ -15,16 +15,8 @@ public class AppConfig {
     public static final String FLOATS_FILE = "floats.txt";
     public static final String STRINGS_FILE = "strings.txt";
 
-    public String getOutputPath() {
-        return outputPath;
-    }
-
     public void setOutputPath(String outputPath) {
         this.outputPath = outputPath;
-    }
-
-    public String getPrefix() {
-        return prefix;
     }
 
     public void setPrefix(String prefix) {

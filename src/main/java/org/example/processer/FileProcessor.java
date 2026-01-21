@@ -27,7 +27,6 @@ public class FileProcessor {
         this.detector = new DataTypeDetector();
         this.statistics = new HashMap<>();
 
-        // Инициализация статистики
         statistics.put("integers", new IntegerStatistics());
         statistics.put("floats", new FloatStatistics());
         statistics.put("strings", new StringStatistics());

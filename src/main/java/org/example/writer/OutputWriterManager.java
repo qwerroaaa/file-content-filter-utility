@@ -61,10 +61,6 @@ public class OutputWriterManager implements AutoCloseable {
         return new BufferedWriter(osw);
     }
 
-    public boolean hasData(String type) {
-        return hasData.getOrDefault(type, false);
-    }
-
     @Override
     public void close() {
         for (Map.Entry<String, BufferedWriter> entry : writers.entrySet()) {
