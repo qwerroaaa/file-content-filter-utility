@@ -50,6 +50,11 @@ java -jar target/file-content-filter-utility-1.0-SNAPSHOT.jar in1.txt
 java -jar target/file-content-filter-utility-1.0-SNAPSHOT.jar -f -p result_ -a in1.txt
 java -jar target/file-content-filter-utility-1.0-SNAPSHOT.jar -o data/output -s in1.txt in2.txt
 ```
-
+## Особенности
+1. **Статистика:** при опции -a статистика собирается на основе исходных записей
+2. Заполнение значений с E выглядит так: `1.123E10`, `1E10`, `1.4324E-12`
+3. Ведущие нули считаются строкой, т.е. значения `00000000000000` считаюотся строкой, как и `0000000123`
+4. Значения формата `5.` тоже считаются строкой. Правильно будет: `5.1`
+5. Знаком разделителя считается `.`, а значит значение `1,123` считается строкой
 
 
