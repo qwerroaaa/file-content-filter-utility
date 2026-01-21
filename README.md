@@ -24,7 +24,7 @@
     mvn clean package
     ```
 
-3.  **Проект собран**
+3.  **Проект собран:**
     Если сборка прошла успешно, в папке `target/` появится исполняемый файл:
     `file-content-filter-utility-1.0-SNAPSHOT.jar`
 
